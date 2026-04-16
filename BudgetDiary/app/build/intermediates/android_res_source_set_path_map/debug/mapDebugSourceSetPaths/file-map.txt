@@ -1,0 +1,7 @@
+com.example.budgetdiary.app-resValues-0 E:\Project\BudgetDiary-AndroidProject\BudgetDiary1\BudgetDiary\app\build\generated\res\resValues\debug
+com.example.budgetdiary.app-updated_navigation_xml-1 E:\Project\BudgetDiary-AndroidProject\BudgetDiary1\BudgetDiary\app\build\generated\updated_navigation_xml\debug
+com.example.budgetdiary.app-packageDebugResources-2 E:\Project\BudgetDiary-AndroidProject\BudgetDiary1\BudgetDiary\app\build\intermediates\incremental\debug\packageDebugResources\merged.dir
+com.example.budgetdiary.app-packageDebugResources-3 E:\Project\BudgetDiary-AndroidProject\BudgetDiary1\BudgetDiary\app\build\intermediates\incremental\debug\packageDebugResources\stripped.dir
+com.example.budgetdiary.app-debug-4 E:\Project\BudgetDiary-AndroidProject\BudgetDiary1\BudgetDiary\app\build\intermediates\merged_res\debug\mergeDebugResources
+com.example.budgetdiary.app-debug-5 E:\Project\BudgetDiary-AndroidProject\BudgetDiary1\BudgetDiary\app\src\debug\res
+com.example.budgetdiary.app-main-6 E:\Project\BudgetDiary-AndroidProject\BudgetDiary1\BudgetDiary\app\src\main\res
