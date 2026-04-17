@@ -10,16 +10,20 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -32,8 +36,6 @@ import com.example.budgetdiary.util.money
 import com.example.budgetdiary.util.round2
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
-import kotlin.math.cos
-import kotlin.math.sin
 
 @Composable
 fun StatsScreen(
@@ -46,11 +48,22 @@ fun StatsScreen(
     activityFundStart: Double,
     activityFundEnd: Double,
     summaries: List<DaySummary>,
+    onScrollChanged: (Int) -> Unit,
 ) {
     val ratio = if (budgetTotal <= 0.0) 0.0 else (spentTotal / budgetTotal).coerceAtMost(1.0)
+    val listState = rememberLazyListState()
+
+    LaunchedEffect(listState) {
+        snapshotFlow {
+            listState.firstVisibleItemIndex * 10000 + listState.firstVisibleItemScrollOffset
+        }.collect { onScrollChanged(it) }
+    }
 
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        state = listState,
+        modifier = Modifier
+            .fillMaxSize()
+            .navigationBarsPadding(),
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
@@ -255,8 +268,7 @@ private fun SpendingPieChart(spentByLabel: List<Pair<String, Double>>) {
 
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Canvas(
-            modifier = Modifier
-                .size(220.dp)
+            modifier = Modifier.size(220.dp)
         ) {
             var startAngle = -90f
             spentByLabel.forEachIndexed { index, (_, amount) ->
@@ -274,9 +286,7 @@ private fun SpendingPieChart(spentByLabel: List<Pair<String, Double>>) {
         }
 
         spentByLabel.forEachIndexed { index, (label, amount) ->
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Box(
                     modifier = Modifier
                         .size(12.dp)

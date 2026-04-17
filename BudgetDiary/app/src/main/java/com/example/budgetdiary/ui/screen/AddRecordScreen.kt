@@ -6,17 +6,25 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items as lazyItems
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.Modifier
@@ -38,19 +46,34 @@ fun AddRecordScreen(
     recentRecords: List<ExpenseRecord>,
     onAdd: (ExpenseRecord) -> Unit,
     onDelete: (LocalDate, String) -> Unit,
+    onScrollChanged: (Int) -> Unit,
 ) {
     var amount by rememberSaveable { mutableStateOf("") }
     var label by rememberSaveable { mutableStateOf(labels.firstOrNull() ?: "其他") }
     var date by rememberSaveable { mutableStateOf(LocalDate.now().toString()) }
-    var time by rememberSaveable { mutableStateOf(LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm"))) }
+    var time by rememberSaveable {
+        mutableStateOf(LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm")))
+    }
     var note by rememberSaveable { mutableStateOf("") }
+
+    val listState = rememberLazyListState()
 
     LaunchedEffect(labels) {
         if (!labels.contains(label) && labels.isNotEmpty()) label = labels.first()
     }
 
+    LaunchedEffect(listState) {
+        snapshotFlow {
+            listState.firstVisibleItemIndex * 10000 + listState.firstVisibleItemScrollOffset
+        }.collect { onScrollChanged(it) }
+    }
+
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        state = listState,
+        modifier = Modifier
+            .fillMaxSize()
+            .imePadding()
+            .navigationBarsPadding(),
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
@@ -61,6 +84,7 @@ fun AddRecordScreen(
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Text("新增消费记录", style = MaterialTheme.typography.titleMedium)
+
                     OutlinedTextField(
                         value = amount,
                         onValueChange = { amount = it },
@@ -69,7 +93,13 @@ fun AddRecordScreen(
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
                     )
-                    LabelDropdown(labels = labels, selected = label, onSelected = { label = it })
+
+                    LabelDropdown(
+                        labels = labels,
+                        selected = label,
+                        onSelected = { label = it }
+                    )
+
                     OutlinedTextField(
                         value = date,
                         onValueChange = { date = it },
@@ -77,6 +107,7 @@ fun AddRecordScreen(
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
                     )
+
                     OutlinedTextField(
                         value = time,
                         onValueChange = { time = it },
@@ -84,6 +115,7 @@ fun AddRecordScreen(
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
                     )
+
                     OutlinedTextField(
                         value = note,
                         onValueChange = { note = it },
@@ -91,6 +123,7 @@ fun AddRecordScreen(
                         modifier = Modifier.fillMaxWidth(),
                         minLines = 2,
                     )
+
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         OutlinedButton(
                             onClick = {
@@ -101,6 +134,7 @@ fun AddRecordScreen(
                         ) {
                             Text("填入当前时间")
                         }
+
                         Button(
                             onClick = {
                                 val amountValue = amount.toDoubleOrNull()
@@ -132,20 +166,38 @@ fun AddRecordScreen(
 
         item {
             Text(
-                text = "${currentMonth.format(DateTimeFormatter.ofPattern("yyyy年MM月"))} 最近记录",
+                text = "${currentMonth.format(DateTimeFormatter.ofPattern("yyyy年MM月"))} 记账记录",
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(top = 4.dp, bottom = 4.dp)
             )
         }
 
         if (recentRecords.isEmpty()) {
-            item { EmptyHint("当前月份还没有消费记录") }
+            item {
+                EmptyHint("当前月份还没有消费记录")
+            }
         } else {
-            lazyItems(recentRecords.take(20), key = { it.id }) { record ->
-                RecordCard(
-                    record = record,
-                    onDelete = { onDelete(record.dateTime.toLocalDate(), record.id) }
-                )
+            val groupedRecords = recentRecords
+                .sortedByDescending { it.dateTime }
+                .groupBy { it.dateTime.toLocalDate() }
+                .toSortedMap(compareByDescending { it })
+
+            groupedRecords.forEach { (recordDate, recordsOfDay) ->
+                item(key = "header_$recordDate") {
+                    Text(
+                        text = recordDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
+                    )
+                }
+
+                lazyItems(recordsOfDay, key = { it.id }) { record ->
+                    RecordCard(
+                        record = record,
+                        onDelete = { onDelete(record.dateTime.toLocalDate(), record.id) }
+                    )
+                }
             }
         }
     }

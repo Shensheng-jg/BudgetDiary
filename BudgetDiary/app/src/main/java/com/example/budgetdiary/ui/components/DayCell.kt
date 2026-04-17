@@ -16,7 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.budgetdiary.model.DaySummary
-import com.example.budgetdiary.util.money
+import kotlin.math.abs
 
 @Composable
 fun DayCell(summary: DaySummary, onClick: () -> Unit) {
@@ -27,7 +27,15 @@ fun DayCell(summary: DaySummary, onClick: () -> Unit) {
         else -> Color(0xFFD1FAE5)
     }
 
-    val diffColor = when {
+    val valueText = when {
+        summary.budget == null -> "--"
+        summary.dailyDiff > 0 -> "+${formatCalendarNumber(summary.dailyDiff)}"
+        summary.dailyDiff < 0 -> "-${formatCalendarNumber(abs(summary.dailyDiff))}"
+        else -> "0"
+    }
+
+    val valueColor = when {
+        summary.budget == null -> Color(0xFF6B7280)
         summary.dailyDiff > 0 -> Color(0xFF047857)
         summary.dailyDiff < 0 -> Color(0xFFB91C1C)
         else -> Color(0xFF374151)
@@ -42,7 +50,7 @@ fun DayCell(summary: DaySummary, onClick: () -> Unit) {
     ) {
         Column(
             modifier = Modifier.padding(6.dp),
-            verticalArrangement = Arrangement.spacedBy(2.dp)
+            verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             Text(
                 text = summary.date.dayOfMonth.toString(),
@@ -51,25 +59,16 @@ fun DayCell(summary: DaySummary, onClick: () -> Unit) {
             )
 
             Text(
-                text = if (summary.budget == null) "未抽取" else "预 ${money(summary.budget.total)}",
-                style = MaterialTheme.typography.labelSmall
-            )
-
-            Text(
-                text = "花 ${money(summary.spent)}",
-                style = MaterialTheme.typography.labelSmall
-            )
-
-            Text(
-                text = if (summary.dailyDiff >= 0) {
-                    "差 +${money(summary.dailyDiff)}"
-                } else {
-                    "差 -${money(-summary.dailyDiff)}"
-                },
+                text = valueText,
                 style = MaterialTheme.typography.labelSmall,
-                color = diffColor,
+                color = valueColor,
                 fontWeight = FontWeight.SemiBold
             )
         }
     }
+}
+
+private fun formatCalendarNumber(value: Double): String {
+    val text = String.format("%.1f", value)
+    return if (text.endsWith(".0")) text.dropLast(2) else text
 }

@@ -1,10 +1,10 @@
 package com.example.budgetdiary.ui.components
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.animation.expandVertically
 import androidx.compose.runtime.Composable
 import com.example.budgetdiary.model.DaySummary
 import com.example.budgetdiary.model.ExpenseRecord
@@ -18,6 +18,8 @@ fun CollapsibleTodayOverview(
     onDrawToday: () -> Unit,
     onDeleteRecord: (String) -> Unit,
 ) {
+    val previewRecords = todayRecords.take(1)
+
     AnimatedVisibility(
         visible = expanded,
         enter = expandVertically() + fadeIn(),
@@ -25,7 +27,7 @@ fun CollapsibleTodayOverview(
     ) {
         TodayOverviewCard(
             summary = summary,
-            todayRecords = todayRecords,
+            todayRecords = previewRecords,
             hasDrawnToday = hasDrawnToday,
             onDrawToday = onDrawToday,
             onDeleteRecord = onDeleteRecord

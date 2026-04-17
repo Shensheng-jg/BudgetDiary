@@ -55,21 +55,6 @@ fun TodayOverviewCard(
                 )
                 Text("当前活动资金：${money(summary.activityBalanceAfter)}")
             }
-
-            Text("今日记录", style = MaterialTheme.typography.titleSmall)
-
-            if (todayRecords.isEmpty()) {
-                Text("今天还没有记账记录", color = MaterialTheme.colorScheme.onSurfaceVariant)
-            } else {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    todayRecords.forEach { record ->
-                        RecordCard(
-                            record = record,
-                            onDelete = { onDeleteRecord(record.id) }
-                        )
-                    }
-                }
-            }
         }
     }
 }

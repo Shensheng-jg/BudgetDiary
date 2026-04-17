@@ -9,7 +9,9 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items as gridItems
@@ -18,7 +20,13 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -38,6 +46,7 @@ fun CalendarScreen(
     month: YearMonth,
     summaries: List<DaySummary>,
     onDelete: (LocalDate, String) -> Unit,
+    onScrollChanged: (Int) -> Unit,
 ) {
     var selected by remember { mutableStateOf<DaySummary?>(null) }
     val firstDay = month.atDay(1)
@@ -46,8 +55,19 @@ fun CalendarScreen(
         summaries.forEach { add(CalendarCell.Day(it)) }
     }
 
+    val listState = rememberLazyListState()
+
+    LaunchedEffect(listState) {
+        snapshotFlow {
+            listState.firstVisibleItemIndex * 10000 + listState.firstVisibleItemScrollOffset
+        }.collect { onScrollChanged(it) }
+    }
+
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        state = listState,
+        modifier = Modifier
+            .fillMaxSize()
+            .navigationBarsPadding(),
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
@@ -68,9 +88,12 @@ fun CalendarScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                listOf("日", "一", "二", "三", "四", "五", "六").forEach {
-                    Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                        Text(it, fontWeight = FontWeight.SemiBold)
+                listOf("日", "一", "二", "三", "四", "五", "六").forEach { day ->
+                    Box(
+                        modifier = Modifier.weight(1f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(day, fontWeight = FontWeight.SemiBold)
                     }
                 }
             }
@@ -79,14 +102,14 @@ fun CalendarScreen(
         item {
             LazyVerticalGrid(
                 columns = GridCells.Fixed(7),
-                modifier = Modifier.height(520.dp),
+                modifier = Modifier.height(700.dp),
                 userScrollEnabled = false,
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 gridItems(calendarItems) { cell ->
                     when (cell) {
-                        CalendarCell.Empty -> Box(modifier = Modifier.aspectRatio(0.82f))
+                        CalendarCell.Empty -> Box(modifier = Modifier.aspectRatio(0.95f))
                         is CalendarCell.Day -> DayCell(
                             summary = cell.summary,
                             onClick = { selected = cell.summary }

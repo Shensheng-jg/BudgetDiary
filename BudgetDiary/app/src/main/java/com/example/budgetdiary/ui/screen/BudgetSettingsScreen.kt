@@ -7,9 +7,10 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
@@ -22,19 +23,19 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.budgetdiary.model.BudgetRange
-import com.example.budgetdiary.model.ExpenseRecord
-import com.example.budgetdiary.ui.components.RecordCard
 import com.example.budgetdiary.util.formatInput
-import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 
@@ -44,19 +45,29 @@ fun BudgetSettingsScreen(
     range: BudgetRange,
     labels: List<String>,
     customLabels: List<String>,
-    allRecords: List<ExpenseRecord>,
     onSave: (BudgetRange) -> Unit,
     onAddLabel: (String) -> Boolean,
     onRemoveLabel: (String) -> Unit,
-    onDeleteRecord: (LocalDate, String) -> Unit,
+    onScrollChanged: (Int) -> Unit,
 ) {
     var foodMin by remember(range) { mutableStateOf(formatInput(range.foodMin)) }
     var foodMax by remember(range) { mutableStateOf(formatInput(range.foodMax)) }
     var monthlyActivityFund by remember(range) { mutableStateOf(formatInput(range.monthlyActivityFund)) }
     var newLabel by rememberSaveable { mutableStateOf("") }
 
+    val listState = rememberLazyListState()
+
+    LaunchedEffect(listState) {
+        snapshotFlow {
+            listState.firstVisibleItemIndex * 10000 + listState.firstVisibleItemScrollOffset
+        }.collect { onScrollChanged(it) }
+    }
+
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        state = listState,
+        modifier = Modifier
+            .fillMaxSize()
+            .navigationBarsPadding(),
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
@@ -149,10 +160,7 @@ fun BudgetSettingsScreen(
                                 label = { Text(label) },
                                 trailingIcon = if (customLabels.contains(label)) {
                                     {
-                                        Icon(
-                                            Icons.Default.Delete,
-                                            contentDescription = null
-                                        )
+                                        Icon(Icons.Default.Delete, contentDescription = null)
                                     }
                                 } else null
                             )
@@ -169,32 +177,6 @@ fun BudgetSettingsScreen(
                                 TextButton(onClick = { onRemoveLabel(label) }) {
                                     Text("删除 $label")
                                 }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        item {
-            Card(shape = RoundedCornerShape(24.dp)) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Text("记录管理", style = MaterialTheme.typography.titleMedium)
-
-                    if (allRecords.isEmpty()) {
-                        Text("暂无记录", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    } else {
-                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            allRecords.take(20).forEach { record ->
-                                RecordCard(
-                                    record = record,
-                                    onDelete = {
-                                        onDeleteRecord(record.dateTime.toLocalDate(), record.id)
-                                    }
-                                )
                             }
                         }
                     }

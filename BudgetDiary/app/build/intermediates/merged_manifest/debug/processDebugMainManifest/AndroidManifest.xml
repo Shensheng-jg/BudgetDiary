@@ -25,7 +25,6 @@
         android:label="Budget Diary"
         android:roundIcon="@android:drawable/ic_menu_my_calendar"
         android:supportsRtl="true"
-        android:testOnly="true"
         android:theme="@style/Theme.BudgetDiary" >
         <activity
             android:name="com.example.budgetdiary.MainActivity"

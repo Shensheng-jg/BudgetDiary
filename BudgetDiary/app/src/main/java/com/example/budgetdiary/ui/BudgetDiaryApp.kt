@@ -23,6 +23,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -48,6 +49,9 @@ fun BudgetDiaryApp(viewModel: BudgetViewModel = viewModel()) {
     var loaded by rememberSaveable { mutableStateOf(false) }
     var selectedTab by rememberSaveable { mutableStateOf(BudgetTab.Record) }
 
+    var todayExpanded by rememberSaveable { mutableStateOf(true) }
+    var lastScrollPosition by remember { mutableIntStateOf(0) }
+
     LaunchedEffect(Unit) {
         viewModel.load(context)
         loaded = true
@@ -67,6 +71,15 @@ fun BudgetDiaryApp(viewModel: BudgetViewModel = viewModel()) {
     val todaySummary = viewModel.todaySummary()
     val hasDrawnToday = viewModel.hasDrawnToday()
     val todayRecords = viewModel.todayRecords()
+
+    fun handleScroll(position: Int) {
+        if (position <= 0) {
+            todayExpanded = true
+        } else if (position > lastScrollPosition) {
+            todayExpanded = false
+        }
+        lastScrollPosition = position
+    }
 
     Scaffold(
         topBar = {
@@ -95,7 +108,7 @@ fun BudgetDiaryApp(viewModel: BudgetViewModel = viewModel()) {
             )
 
             CollapsibleTodayOverview(
-                expanded = true,
+                expanded = todayExpanded,
                 summary = todaySummary,
                 todayRecords = todayRecords,
                 hasDrawnToday = hasDrawnToday,
@@ -126,20 +139,17 @@ fun BudgetDiaryApp(viewModel: BudgetViewModel = viewModel()) {
                 }
             }
 
-            Box(
-                modifier = Modifier.weight(1f)
-            ) {
+            Box(modifier = Modifier.weight(1f)) {
                 when (selectedTab) {
                     BudgetTab.Budget -> BudgetSettingsScreen(
                         month = viewModel.currentMonth,
                         range = viewModel.getRange(viewModel.currentMonth),
                         labels = viewModel.allLabels(),
                         customLabels = viewModel.customLabels,
-                        allRecords = viewModel.allRecordsSorted(),
                         onSave = { viewModel.updateRange(viewModel.currentMonth, it) },
                         onAddLabel = { viewModel.addCustomLabel(it) },
                         onRemoveLabel = { viewModel.removeCustomLabel(it) },
-                        onDeleteRecord = { date, id -> viewModel.deleteRecord(date, id) },
+                        onScrollChanged = ::handleScroll,
                     )
 
                     BudgetTab.Record -> AddRecordScreen(
@@ -148,12 +158,14 @@ fun BudgetDiaryApp(viewModel: BudgetViewModel = viewModel()) {
                         recentRecords = viewModel.monthRecords(),
                         onAdd = { record -> viewModel.addRecord(record) },
                         onDelete = { date, id -> viewModel.deleteRecord(date, id) },
+                        onScrollChanged = ::handleScroll,
                     )
 
                     BudgetTab.Calendar -> CalendarScreen(
                         month = viewModel.currentMonth,
                         summaries = viewModel.monthSummaries(),
-                        onDelete = { date, id -> viewModel.deleteRecord(date, id) }
+                        onDelete = { date, id -> viewModel.deleteRecord(date, id) },
+                        onScrollChanged = ::handleScroll,
                     )
 
                     BudgetTab.Stats -> StatsScreen(
@@ -166,6 +178,7 @@ fun BudgetDiaryApp(viewModel: BudgetViewModel = viewModel()) {
                         activityFundStart = viewModel.getRange(viewModel.currentMonth).monthlyActivityFund,
                         activityFundEnd = viewModel.monthEndActivityBalance(),
                         summaries = viewModel.monthSummaries(),
+                        onScrollChanged = ::handleScroll,
                     )
                 }
             }
