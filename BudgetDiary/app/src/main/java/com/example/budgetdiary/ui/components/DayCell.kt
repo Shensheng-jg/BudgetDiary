@@ -18,13 +18,18 @@ import androidx.compose.ui.unit.dp
 import com.example.budgetdiary.model.DaySummary
 import kotlin.math.abs
 
+private val CalendarGray = Color(0xFFF1F1F3)
+private val CalendarGreen = Color(0xFFDDF3E4)
+private val CalendarOrange = Color(0xFFF8E8D7)
+private val CalendarRed = Color(0xFFF6DCDC)
+
 @Composable
 fun DayCell(summary: DaySummary, onClick: () -> Unit) {
     val bg = when {
-        summary.budget == null -> Color(0xFFF3F4F6)
-        summary.isActivityFundNegative -> Color(0xFFFECACA)
-        summary.isOverDailyBudget -> Color(0xFFFFEDD5)
-        else -> Color(0xFFD1FAE5)
+        summary.budget == null -> CalendarGray
+        summary.isActivityFundNegative -> CalendarRed
+        summary.isOverDailyBudget -> CalendarOrange
+        else -> CalendarGreen
     }
 
     val valueText = when {
@@ -35,27 +40,29 @@ fun DayCell(summary: DaySummary, onClick: () -> Unit) {
     }
 
     val valueColor = when {
-        summary.budget == null -> Color(0xFF6B7280)
-        summary.dailyDiff > 0 -> Color(0xFF047857)
-        summary.dailyDiff < 0 -> Color(0xFFB91C1C)
-        else -> Color(0xFF374151)
+        summary.budget == null -> Color(0xFF8A8791)
+        summary.dailyDiff > 0 -> Color(0xFF4E8A63)
+        summary.dailyDiff < 0 -> Color(0xFFB06A5F)
+        else -> MaterialTheme.colorScheme.onSurface
     }
 
     Card(
         modifier = Modifier
-            .aspectRatio(0.82f)
+            .aspectRatio(0.84f)
             .clickable(onClick = onClick),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = bg)
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = bg),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Column(
-            modifier = Modifier.padding(6.dp),
+            modifier = Modifier.padding(horizontal = 6.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             Text(
                 text = summary.date.dayOfMonth.toString(),
                 fontWeight = FontWeight.Bold,
-                style = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface
             )
 
             Text(

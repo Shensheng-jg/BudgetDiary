@@ -22,15 +22,14 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.budgetdiary.model.CalendarCell
 import com.example.budgetdiary.model.DaySummary
@@ -40,6 +39,11 @@ import com.example.budgetdiary.util.money
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
+
+private val CalendarGray = Color(0xFFF1F1F3)
+private val CalendarGreen = Color(0xFFDDF3E4)
+private val CalendarOrange = Color(0xFFF8E8D7)
+private val CalendarRed = Color(0xFFF6DCDC)
 
 @Composable
 fun CalendarScreen(
@@ -56,6 +60,7 @@ fun CalendarScreen(
     }
 
     val listState = rememberLazyListState()
+    val scheme = MaterialTheme.colorScheme
 
     LaunchedEffect(listState) {
         snapshotFlow {
@@ -76,10 +81,10 @@ fun CalendarScreen(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                LegendChip("未生成预算", Color(0xFFE5E7EB))
-                LegendChip("当日有结余", Color(0xFFD1FAE5))
-                LegendChip("超日预算", Color(0xFFFFEDD5))
-                LegendChip("活动资金为负", Color(0xFFFECACA))
+                LegendChip("未生成预算", CalendarGray)
+                LegendChip("当日有结余", CalendarGreen)
+                LegendChip("超日预算", CalendarOrange)
+                LegendChip("活动资金为负", CalendarRed)
             }
         }
 
@@ -93,7 +98,11 @@ fun CalendarScreen(
                         modifier = Modifier.weight(1f),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(day, fontWeight = FontWeight.SemiBold)
+                        Text(
+                            day,
+                            color = scheme.onSurface,
+                            style = MaterialTheme.typography.labelLarge
+                        )
                     }
                 }
             }
@@ -139,7 +148,7 @@ fun CalendarScreen(
                         } else {
                             "当日超支：${money(-summary.dailyDiff)}"
                         },
-                        color = if (summary.dailyDiff >= 0) Color(0xFF047857) else Color(0xFFB91C1C)
+                        color = if (summary.dailyDiff >= 0) Color(0xFF4E8A63) else Color(0xFFB06A5F)
                     )
                     Text("活动资金（当天开始）：${money(summary.activityBalanceBefore)}")
                     Text("活动资金（当天结束）：${money(summary.activityBalanceAfter)}")
@@ -155,7 +164,7 @@ fun CalendarScreen(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
-                                    Text(record.label, fontWeight = FontWeight.SemiBold)
+                                    Text(record.label)
                                     Text(money(record.amount))
                                 }
                                 Text(

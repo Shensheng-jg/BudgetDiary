@@ -52,6 +52,7 @@ fun StatsScreen(
 ) {
     val ratio = if (budgetTotal <= 0.0) 0.0 else (spentTotal / budgetTotal).coerceAtMost(1.0)
     val listState = rememberLazyListState()
+    val scheme = MaterialTheme.colorScheme
 
     LaunchedEffect(listState) {
         snapshotFlow {
@@ -88,7 +89,7 @@ fun StatsScreen(
                             .fillMaxWidth()
                             .height(12.dp)
                             .clip(RoundedCornerShape(999.dp))
-                            .background(Color(0xFFE5E7EB))
+                            .background(scheme.surfaceVariant)
                     ) {
                         Box(
                             modifier = Modifier
@@ -97,9 +98,9 @@ fun StatsScreen(
                                 .clip(RoundedCornerShape(999.dp))
                                 .background(
                                     if (spentTotal > budgetTotal && budgetTotal > 0) {
-                                        Color(0xFFEF4444)
+                                        Color(0xFFE9B7B7)
                                     } else {
-                                        Color(0xFF10B981)
+                                        Color(0xFFCBE7D5)
                                     }
                                 )
                         )
@@ -166,14 +167,14 @@ fun StatsScreen(
                                         .fillMaxWidth()
                                         .height(10.dp)
                                         .clip(RoundedCornerShape(999.dp))
-                                        .background(Color(0xFFE5E7EB))
+                                        .background(scheme.surfaceVariant)
                                 ) {
                                     Box(
                                         modifier = Modifier
                                             .fillMaxWidth((amount / maxValue).toFloat())
                                             .height(10.dp)
                                             .clip(RoundedCornerShape(999.dp))
-                                            .background(Color(0xFF6366F1))
+                                            .background(Color(0xFFDCCFF5))
                                     )
                                 }
                             }
@@ -189,6 +190,7 @@ fun StatsScreen(
 private fun DailyExpenseLineChart(summaries: List<DaySummary>) {
     val values = summaries.map { it.spent }
     val maxValue = values.maxOrNull()?.coerceAtLeast(1.0) ?: 1.0
+    val scheme = MaterialTheme.colorScheme
 
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Canvas(
@@ -204,13 +206,13 @@ private fun DailyExpenseLineChart(summaries: List<DaySummary>) {
             val bottom = h - 24f
 
             drawLine(
-                color = Color.LightGray,
+                color = scheme.outline.copy(alpha = 0.6f),
                 start = Offset(left, bottom),
                 end = Offset(right, bottom),
                 strokeWidth = 2.5f
             )
             drawLine(
-                color = Color.LightGray,
+                color = scheme.outline.copy(alpha = 0.6f),
                 start = Offset(left, top),
                 end = Offset(left, bottom),
                 strokeWidth = 2.5f
@@ -227,7 +229,7 @@ private fun DailyExpenseLineChart(summaries: List<DaySummary>) {
 
                 for (i in 0 until points.lastIndex) {
                     drawLine(
-                        color = Color(0xFF2563EB),
+                        color = Color(0xFF8B82D9),
                         start = points[i],
                         end = points[i + 1],
                         strokeWidth = 3f
@@ -236,7 +238,7 @@ private fun DailyExpenseLineChart(summaries: List<DaySummary>) {
 
                 points.forEach {
                     drawCircle(
-                        color = Color(0xFF2563EB),
+                        color = Color(0xFF8B82D9),
                         radius = 4f,
                         center = it
                     )
@@ -247,21 +249,22 @@ private fun DailyExpenseLineChart(summaries: List<DaySummary>) {
         Text(
             "横轴为日期，纵轴为每日消费金额",
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = scheme.onSurfaceVariant
         )
     }
 }
 
 @Composable
 private fun SpendingPieChart(spentByLabel: List<Pair<String, Double>>) {
+    val scheme = MaterialTheme.colorScheme
     val colors = listOf(
-        Color(0xFF6366F1),
-        Color(0xFF10B981),
-        Color(0xFFF59E0B),
-        Color(0xFFEF4444),
-        Color(0xFF06B6D4),
-        Color(0xFF8B5CF6),
-        Color(0xFF84CC16),
+        Color(0xFFDCCFF5),
+        Color(0xFFD7E8F5),
+        Color(0xFFCFE8D8),
+        Color(0xFFF5E2CF),
+        Color(0xFFF2D6D9),
+        Color(0xFFE7DDF7),
+        Color(0xFFE8E5EC),
     )
 
     val total = spentByLabel.sumOf { it.second }.coerceAtLeast(1.0)

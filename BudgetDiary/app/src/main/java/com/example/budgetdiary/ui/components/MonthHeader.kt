@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import com.example.budgetdiary.util.money
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
+import androidx.compose.foundation.layout.IntrinsicSize
 
 @Composable
 fun MonthHeader(
@@ -64,7 +65,10 @@ fun MonthHeader(
         ) {
             Column {
                 Spacer(modifier = Modifier.height(8.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
                     StatCard("预算总和", money(budgetTotal), Modifier.weight(1f))
                     StatCard("已消费", money(spentTotal), Modifier.weight(1f))
                     StatCard("超支天数", "$overspentDays 天", Modifier.weight(1f))
