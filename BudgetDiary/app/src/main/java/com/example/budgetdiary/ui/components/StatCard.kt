@@ -22,9 +22,16 @@ fun StatCard(title: String, value: String, modifier: Modifier = Modifier) {
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
-            Text(text = title, style = MaterialTheme.typography.labelMedium)
+            Text(
+                text = title,
+                style = MaterialTheme.typography.labelSmall
+            )
             Spacer(modifier = Modifier.height(4.dp))
-            Text(text = value, fontWeight = FontWeight.Bold)
+            Text(
+                text = value,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Bold
+            )
         }
     }
 }

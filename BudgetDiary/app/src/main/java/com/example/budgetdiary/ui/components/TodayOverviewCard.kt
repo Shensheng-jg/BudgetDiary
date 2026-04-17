@@ -43,7 +43,9 @@ fun TodayOverviewCard(
                     Text("抽取今日预算")
                 }
             } else {
-                Text("今日抽取预算：${money(summary.budget?.total ?: 0.0)}")
+                Text("今日基础预算：${money(summary.budget?.total ?: 0.0)}")
+                Text("今日任务加成：${money(summary.completedTaskReward)}")
+                Text("今日可用预算：${money(summary.totalAvailableBudget)}")
                 Text("今日消费：${money(summary.spent)}")
                 Text(
                     text = if (summary.dailyDiff >= 0) {

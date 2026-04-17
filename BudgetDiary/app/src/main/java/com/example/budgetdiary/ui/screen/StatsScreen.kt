@@ -190,30 +190,30 @@ private fun DailyExpenseLineChart(summaries: List<DaySummary>) {
     val values = summaries.map { it.spent }
     val maxValue = values.maxOrNull()?.coerceAtLeast(1.0) ?: 1.0
 
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Canvas(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(220.dp)
+                .height(170.dp)
         ) {
             val w = size.width
             val h = size.height
-            val left = 30f
-            val right = w - 10f
+            val left = 28f
+            val right = w - 8f
             val top = 10f
-            val bottom = h - 30f
+            val bottom = h - 24f
 
             drawLine(
                 color = Color.LightGray,
                 start = Offset(left, bottom),
                 end = Offset(right, bottom),
-                strokeWidth = 3f
+                strokeWidth = 2.5f
             )
             drawLine(
                 color = Color.LightGray,
                 start = Offset(left, top),
                 end = Offset(left, bottom),
-                strokeWidth = 3f
+                strokeWidth = 2.5f
             )
 
             if (values.size > 1) {
@@ -230,14 +230,14 @@ private fun DailyExpenseLineChart(summaries: List<DaySummary>) {
                         color = Color(0xFF2563EB),
                         start = points[i],
                         end = points[i + 1],
-                        strokeWidth = 4f
+                        strokeWidth = 3f
                     )
                 }
 
                 points.forEach {
                     drawCircle(
                         color = Color(0xFF2563EB),
-                        radius = 5f,
+                        radius = 4f,
                         center = it
                     )
                 }
@@ -266,9 +266,9 @@ private fun SpendingPieChart(spentByLabel: List<Pair<String, Double>>) {
 
     val total = spentByLabel.sumOf { it.second }.coerceAtLeast(1.0)
 
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Canvas(
-            modifier = Modifier.size(220.dp)
+            modifier = Modifier.size(170.dp)
         ) {
             var startAngle = -90f
             spentByLabel.forEachIndexed { index, (_, amount) ->
@@ -289,13 +289,13 @@ private fun SpendingPieChart(spentByLabel: List<Pair<String, Double>>) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Box(
                     modifier = Modifier
-                        .size(12.dp)
+                        .size(10.dp)
                         .clip(CircleShape)
                         .background(colors[index % colors.size])
                 )
                 Text(
                     "$label：${money(amount)}（${(amount / total * 100).round2()}%）",
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodySmall
                 )
             }
         }

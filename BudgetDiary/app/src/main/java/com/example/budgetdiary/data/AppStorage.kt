@@ -4,6 +4,8 @@ import android.content.Context
 import com.example.budgetdiary.model.AppState
 import com.example.budgetdiary.model.BudgetRange
 import com.example.budgetdiary.model.DailyBudget
+import com.example.budgetdiary.model.DailyTask
+import com.example.budgetdiary.model.DailyTaskProgress
 import com.example.budgetdiary.model.ExpenseRecord
 import com.example.budgetdiary.util.jsonKeys
 import org.json.JSONArray
@@ -23,6 +25,8 @@ class AppStorage(context: Context) {
                 dailyBudgets = readDailyBudgets(root.optJSONObject("dailyBudgets") ?: JSONObject()),
                 records = readRecords(root.optJSONObject("records") ?: JSONObject()),
                 customLabels = readStringList(root.optJSONArray("customLabels") ?: JSONArray()),
+                monthlyTasks = readMonthlyTasks(root.optJSONObject("monthlyTasks") ?: JSONObject()),
+                taskProgress = readTaskProgress(root.optJSONObject("taskProgress") ?: JSONObject()),
             )
         }.getOrDefault(AppState())
     }
@@ -33,6 +37,8 @@ class AppStorage(context: Context) {
         root.put("dailyBudgets", writeDailyBudgets(state.dailyBudgets))
         root.put("records", writeRecords(state.records))
         root.put("customLabels", writeStringList(state.customLabels))
+        root.put("monthlyTasks", writeMonthlyTasks(state.monthlyTasks))
+        root.put("taskProgress", writeTaskProgress(state.taskProgress))
         prefs.edit().putString("state", root.toString()).apply()
     }
 
@@ -40,13 +46,35 @@ class AppStorage(context: Context) {
         val result = mutableMapOf<String, BudgetRange>()
         for (key in jsonKeys(obj)) {
             val item = obj.getJSONObject(key)
+
+            val monthlyBudgetTotal =
+                if (item.has("monthlyBudgetTotal")) {
+                    item.optDouble("monthlyBudgetTotal", 900.0)
+                } else {
+                    val oldFoodMax = item.optDouble("foodMax", 60.0)
+                    val oldActivityFund = item.optDouble(
+                        "monthlyActivityFund",
+                        item.optDouble("activityMax", 300.0)
+                    )
+                    oldFoodMax * 30 + oldActivityFund
+                }
+
+            val dailyRangeDelta =
+                if (item.has("dailyRangeDelta")) {
+                    item.optDouble("dailyRangeDelta", 10.0)
+                } else {
+                    val oldFoodMin = item.optDouble("foodMin", 20.0)
+                    val oldFoodMax = item.optDouble("foodMax", 60.0)
+                    (oldFoodMax - oldFoodMin).coerceAtLeast(0.0)
+                }
+
             result[key] = BudgetRange(
-                foodMin = item.optDouble("foodMin", 20.0),
-                foodMax = item.optDouble("foodMax", 60.0),
+                monthlyBudgetTotal = monthlyBudgetTotal,
                 monthlyActivityFund = item.optDouble(
                     "monthlyActivityFund",
                     item.optDouble("activityMax", 300.0)
                 ),
+                dailyRangeDelta = dailyRangeDelta,
             )
         }
         return result
@@ -56,9 +84,9 @@ class AppStorage(context: Context) {
         val obj = JSONObject()
         data.forEach { (key, value) ->
             obj.put(key, JSONObject().apply {
-                put("foodMin", value.foodMin)
-                put("foodMax", value.foodMax)
+                put("monthlyBudgetTotal", value.monthlyBudgetTotal)
                 put("monthlyActivityFund", value.monthlyActivityFund)
+                put("dailyRangeDelta", value.dailyRangeDelta)
             })
         }
         return obj
@@ -131,6 +159,63 @@ class AppStorage(context: Context) {
                 })
             }
             obj.put(date, arr)
+        }
+        return obj
+    }
+
+    private fun readMonthlyTasks(obj: JSONObject): Map<String, List<DailyTask>> {
+        val result = mutableMapOf<String, List<DailyTask>>()
+        for (month in jsonKeys(obj)) {
+            val arr = obj.getJSONArray(month)
+            val tasks = buildList {
+                for (i in 0 until arr.length()) {
+                    val item = arr.getJSONObject(i)
+                    add(
+                        DailyTask(
+                            id = item.optString("id", UUID.randomUUID().toString()),
+                            title = item.optString("title", ""),
+                            reward = item.optDouble("reward", 0.0),
+                        )
+                    )
+                }
+            }.filter { it.title.isNotBlank() && it.reward > 0.0 }
+            result[month] = tasks
+        }
+        return result
+    }
+
+    private fun writeMonthlyTasks(data: Map<String, List<DailyTask>>): JSONObject {
+        val obj = JSONObject()
+        data.forEach { (month, tasks) ->
+            val arr = JSONArray()
+            tasks.forEach { task ->
+                arr.put(JSONObject().apply {
+                    put("id", task.id)
+                    put("title", task.title)
+                    put("reward", task.reward)
+                })
+            }
+            obj.put(month, arr)
+        }
+        return obj
+    }
+
+    private fun readTaskProgress(obj: JSONObject): Map<String, DailyTaskProgress> {
+        val result = mutableMapOf<String, DailyTaskProgress>()
+        for (date in jsonKeys(obj)) {
+            val item = obj.getJSONObject(date)
+            val ids = readStringList(item.optJSONArray("completedTaskIds") ?: JSONArray())
+            result[date] = DailyTaskProgress(completedTaskIds = ids)
+        }
+        return result
+    }
+
+    private fun writeTaskProgress(data: Map<String, DailyTaskProgress>): JSONObject {
+        val obj = JSONObject()
+        data.forEach { (date, progress) ->
+            obj.put(date, JSONObject().apply {
+                put("completedTaskIds", writeStringList(progress.completedTaskIds))
+            })
         }
         return obj
     }

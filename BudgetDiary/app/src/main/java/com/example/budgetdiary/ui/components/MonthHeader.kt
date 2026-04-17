@@ -1,5 +1,10 @@
 package com.example.budgetdiary.ui.components
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -29,6 +34,7 @@ fun MonthHeader(
     budgetTotal: Double,
     spentTotal: Double,
     overspentDays: Int,
+    expanded: Boolean,
     onPrevious: () -> Unit,
     onNext: () -> Unit,
 ) {
@@ -50,11 +56,20 @@ fun MonthHeader(
                 Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "下一月")
             }
         }
-        Spacer(modifier = Modifier.height(8.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            StatCard("预算总和", money(budgetTotal), Modifier.weight(1f))
-            StatCard("已消费", money(spentTotal), Modifier.weight(1f))
-            StatCard("超支天数", "$overspentDays 天", Modifier.weight(1f))
+
+        AnimatedVisibility(
+            visible = expanded,
+            enter = expandVertically() + fadeIn(),
+            exit = shrinkVertically() + fadeOut()
+        ) {
+            Column {
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    StatCard("预算总和", money(budgetTotal), Modifier.weight(1f))
+                    StatCard("已消费", money(spentTotal), Modifier.weight(1f))
+                    StatCard("超支天数", "$overspentDays 天", Modifier.weight(1f))
+                }
+            }
         }
     }
 }

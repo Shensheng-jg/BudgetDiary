@@ -18,8 +18,6 @@ fun CollapsibleTodayOverview(
     onDrawToday: () -> Unit,
     onDeleteRecord: (String) -> Unit,
 ) {
-    val previewRecords = todayRecords.take(1)
-
     AnimatedVisibility(
         visible = expanded,
         enter = expandVertically() + fadeIn(),
@@ -27,7 +25,7 @@ fun CollapsibleTodayOverview(
     ) {
         TodayOverviewCard(
             summary = summary,
-            todayRecords = previewRecords,
+            todayRecords = todayRecords,
             hasDrawnToday = hasDrawnToday,
             onDrawToday = onDrawToday,
             onDeleteRecord = onDeleteRecord
